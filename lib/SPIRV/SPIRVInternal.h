@@ -990,9 +990,10 @@ bool isSPIRVBuiltinVariable(GlobalVariable *GV, SPIRVBuiltinVariableKind *Kind);
 // - GlobalInvolcationId[x] -> _Z33__spirv_BuiltInGlobalInvocationIdi(x)
 // - WorkDim -> _Z22__spirv_BuiltInWorkDimv()
 bool lowerBuiltinVariableToCall(GlobalVariable *GV,
-                                SPIRVBuiltinVariableKind Kind);
+                                SPIRVBuiltinVariableKind Kind,
+                                bool useOCLName = false);
 // Transform all builtin variables into calls
-bool lowerBuiltinVariablesToCalls(Module *M);
+bool lowerBuiltinVariablesToCalls(Module *M, bool useOCLName = false);
 
 // Transform all builtin calls into variables
 bool lowerBuiltinCallsToVariables(Module *M);

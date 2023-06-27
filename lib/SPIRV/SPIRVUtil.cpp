@@ -2025,7 +2025,11 @@ static void replaceUsesOfBuiltinVar(Value *V, const APInt &AccumulatedOffset,
           Replacement = setAttrByCalledFunc(Builder.CreateCall(
               ReplacementFunc, {Builder.getInt32(Index.getZExtValue())}));
         } else {
-          llvm_unreachable("Illegal load type of a SPIR-V builtin variable");
+          Replacement = Builder.CreateTruncOrBitCast(
+                setAttrByCalledFunc(
+                  Builder.CreateCall(ReplacementFunc, {Builder.getInt32(Index.getZExtValue())})), 
+                Load->getType());
+          // llvm_unreachable("Illegal load type of a SPIR-V builtin variable");
         }
       }
       Load->replaceAllUsesWith(Replacement);
@@ -2040,7 +2044,8 @@ static void replaceUsesOfBuiltinVar(Value *V, const APInt &AccumulatedOffset,
 }
 
 bool lowerBuiltinVariableToCall(GlobalVariable *GV,
-                                SPIRVBuiltinVariableKind Kind) {
+                                SPIRVBuiltinVariableKind Kind,
+                                bool useOCLName) {
   // There might be dead constant users of GV (for example, SPIRVLowerConstExpr
   // replaces ConstExpr uses but those ConstExprs are not deleted, since LLVM
   // constants are created on demand as needed and never deleted).
@@ -2049,7 +2054,8 @@ bool lowerBuiltinVariableToCall(GlobalVariable *GV,
 
   Module *M = GV->getParent();
   LLVMContext &C = M->getContext();
-  std::string FuncName = GV->getName().str();
+  std::string FuncName = (useOCLName)? 
+    SPIRSPIRVBuiltinVariableMap::rmap(Kind) : GV->getName().str();
   Type *GVTy = GV->getValueType();
   Type *ReturnTy = GVTy;
   // Some SPIR-V builtin variables are translated to a function with an index
@@ -2078,13 +2084,13 @@ bool lowerBuiltinVariableToCall(GlobalVariable *GV,
   return true;
 }
 
-bool lowerBuiltinVariablesToCalls(Module *M) {
+bool lowerBuiltinVariablesToCalls(Module *M, bool useOCLName) {
   std::vector<GlobalVariable *> WorkList;
   for (auto I = M->global_begin(), E = M->global_end(); I != E; ++I) {
     SPIRVBuiltinVariableKind Kind;
     if (!isSPIRVBuiltinVariable(&(*I), &Kind))
       continue;
-    if (!lowerBuiltinVariableToCall(&(*I), Kind))
+    if (!lowerBuiltinVariableToCall(&(*I), Kind, useOCLName))
       return false;
     WorkList.push_back(&(*I));
   }

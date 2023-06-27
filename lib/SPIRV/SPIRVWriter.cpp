@@ -5078,8 +5078,13 @@ bool LLVMToSPIRVBase::translate() {
   if (isEmptyLLVMModule(M))
     BM->addCapability(CapabilityLinkage);
 
-  if (!lowerBuiltinCallsToVariables(M))
+#if 0
+   if (!lowerBuiltinCallsToVariables(M))
+     return false;
+#else
+  if (!lowerBuiltinVariablesToCalls(M, true))
     return false;
+#endif
 
   // Use the type scavenger to recover pointer element types.
   Scavenger = std::make_unique<SPIRVTypeScavenger>(*M);

@@ -1,0 +1,1 @@
+PKG_CONFIG_PATH=/home/ptu1/packages/spirv-tools/lib/pkgconfig/ cmake .. -DLLVM_DIR=/home/ptu1/workspace/llvm-project/build_mlir/lib/cmake/llvm -DLLVM_SPIRV_BUILD_EXTERNAL=YES -DCMAKE_INSTALL_PREFIX=~/packages/llvm-spirv
